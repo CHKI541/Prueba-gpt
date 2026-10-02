@@ -10,8 +10,8 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Install
@@ -35,10 +35,13 @@ jobs:
         run: |
           $test = Start-Process -FilePath "./dist/MediaPocket.exe" -ArgumentList "--self-test" -Wait -PassThru -NoNewWindow
           if ($test.ExitCode -ne 0) { throw "Packaged self-test failed with exit code $($test.ExitCode)" }
-      - uses: actions/upload-artifact@v4
+      - name: Prepare portable package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path portable | Out-Null
+          Copy-Item dist/MediaPocket.exe, FFmpeg-LICENSE.txt -Destination portable
+      - uses: actions/upload-artifact@v7
         with:
           name: MediaPocket-Windows-x64
-          path: |
-            dist/MediaPocket.exe
-            FFmpeg-LICENSE.txt
+          path: portable/*
           if-no-files-found: error
