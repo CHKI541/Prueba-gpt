@@ -50,7 +50,7 @@ def self_test():
     for exe in ("ffmpeg.exe", "ffprobe.exe"):
         result = run_hidden([resource_path(exe), "-version"], timeout=30)
         if result.returncode:
-            raise SystemExit(f"Fallo {exe}: {result.stderr}")
+            raise RuntimeError(f"Fallo {exe}: {result.stderr}")
     return 0
 
 
