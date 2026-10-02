@@ -1,27 +1,27 @@
 # MediaPocket
 
-Aplicación ligera para Windows: convierte audio a MP3, comprime videos para mensajería y extrae un fotograma. El procesamiento es local.
+Aplicación portable para Windows x64 que convierte audio a MP3, intenta comprimir videos por debajo de 25 MB y extrae el primer fotograma decodificable. El procesamiento ocurre localmente; no se suben archivos.
 
 ## Descargar
 
-Abre **Actions → Build MediaPocket for Windows → último workflow exitoso → Artifacts → MediaPocket-Windows-x64**. Descomprime el ZIP y ejecuta MediaPocket.exe con doble clic. No requiere instalar Python ni FFmpeg.
+Abre [Actions del repositorio](https://github.com/CHKI541/Prueba-gpt/actions), entra al workflow **Build MediaPocket for Windows**, elige la ejecución más reciente que haya terminado correctamente y descarga el artifact **MediaPocket-Windows-x64**. Descomprime el ZIP y ejecuta MediaPocket.exe con doble clic. No requiere instalar Python ni FFmpeg.
 
-El ejecutable estará disponible después de que GitHub Actions termine correctamente.
+El artifact incluye el ejecutable y el aviso de licencia de FFmpeg. Antes de redistribuir el programa, revisa las condiciones del build de FFmpeg y las obligaciones de licencia aplicables.
 
 ## Uso
 
-1. Arrastra un archivo al recuadro o haz clic para buscarlo.
-2. Elige una de las tres acciones.
-3. La salida se guarda junto al original.
+1. Arrastra un archivo al recuadro o haz clic para seleccionarlo.
+2. Elige convertir a MP3, comprimir o extraer fotograma.
+3. La salida se guarda junto al original. Si el nombre ya existe, se añade un sufijo numérico; no se sobrescribe el archivo anterior.
 
-La compresión usa H.264/AAC y verifica el límite de 25 MiB. No puede garantizar que cualquier video largo quepa; si excede el límite, informa el problema. El fotograma se extrae en el segundo 1.
+## Límite de compresión
 
-## Desarrollo
+La aplicación busca un resultado menor que **25.000.000 bytes (25 MB decimales)**. Consulta la duración y reintenta con varios bitrates y resoluciones. Videos muy largos, con contenido complejo o sin pista de video compatible podrían no alcanzar el límite; en ese caso informa que no pudo hacerlo, sin reemplazar el original. El tamaño final puede variar por el contenedor y la codificación.
 
-Python 3.12. Instala dependencias con pip install -r requirements.txt y ejecuta python app.py. Para desarrollo, coloca ffmpeg.exe junto a app.py o en PATH.
+El fotograma corresponde al primer fotograma de video que FFmpeg pueda decodificar, por lo que también contempla clips de menos de un segundo.
 
-El workflow de GitHub Actions construye el ejecutable portable x64 con PyInstaller. FFmpeg se distribuye sujeto a su licencia y a la licencia del build descargado.
+## Pruebas y alcance
 
-## Alcance inicial
+El workflow de GitHub Actions construye el EXE e incluye un smoke test que comprueba que el ejecutable empaquetado puede importar tkinterdnd2 y ejecutar las versiones empaquetadas de FFmpeg y ffprobe. Esto no sustituye una prueba manual de la interfaz gráfica, el arrastre real desde el Explorador de Windows ni conversiones con una colección amplia de archivos.
 
-Windows 10/11 x64. Esta versión no incluye porcentaje de progreso ni cancelación. La compresión de archivos arbitrariamente largos requiere ajustar duración/resolución manualmente.
+Windows 10/11 x64. La versión inicial no incluye barra de progreso ni cancelación. Para desarrollo: Python 3.12, `pip install -r requirements.txt`, y FFmpeg/ffprobe junto a `app.py`; luego `python app.py`.
