@@ -51,7 +51,6 @@ def self_test():
         result = run_hidden([resource_path(exe), "-version"], timeout=30)
         if result.returncode:
             raise SystemExit(f"Fallo {exe}: {result.stderr}")
-    print("SELF-TEST OK: Python, tkinterdnd2, FFmpeg y ffprobe empaquetados.")
     return 0
 
 
