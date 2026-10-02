@@ -18,17 +18,27 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt pyinstaller
-      - name: Download FFmpeg
+      - name: Download FFmpeg tools
         shell: pwsh
         run: |
           Invoke-WebRequest https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip -OutFile ffmpeg.zip
           Expand-Archive ffmpeg.zip -DestinationPath ffmpeg-unpack
-          $ff = Get-ChildItem ffmpeg-unpack -Recurse -Filter ffmpeg.exe | Select-Object -First 1
-          Copy-Item $ff.FullName ./ffmpeg.exe
+          $bin = Get-ChildItem ffmpeg-unpack -Recurse -Directory | Where-Object { $_.Name -eq "bin" } | Select-Object -First 1
+          Copy-Item (Join-Path $bin.FullName "ffmpeg.exe") ./ffmpeg.exe
+          Copy-Item (Join-Path $bin.FullName "ffprobe.exe") ./ffprobe.exe
+          & ./ffmpeg.exe -L 2>&1 | Out-File -Encoding utf8 FFmpeg-LICENSE.txt
+          "FFmpeg Windows essentials build source: https://www.gyan.dev/ffmpeg/builds/`nFFmpeg project: https://ffmpeg.org/`nReview included license output and upstream build terms before redistribution." | Add-Content -Encoding utf8 FFmpeg-LICENSE.txt
       - name: Build standalone EXE
-        run: pyinstaller --noconfirm --clean --onefile --windowed --name MediaPocket --add-binary "ffmpeg.exe;." --collect-all tkinterdnd2 app.py
+        run: pyinstaller --noconfirm --clean --onefile --windowed --name MediaPocket --add-binary "ffmpeg.exe;." --add-binary "ffprobe.exe;." --add-data "FFmpeg-LICENSE.txt;." --collect-all tkinterdnd2 --hidden-import tkinterdnd2 app.py
+      - name: Smoke test packaged executable and bundled tools
+        shell: pwsh
+        run: |
+          ./dist/MediaPocket.exe --self-test
+          if ($LASTEXITCODE -ne 0) { throw "Packaged self-test failed with exit code $LASTEXITCODE" }
       - uses: actions/upload-artifact@v4
         with:
           name: MediaPocket-Windows-x64
-          path: dist/MediaPocket.exe
+          path: |
+            dist/MediaPocket.exe
+            FFmpeg-LICENSE.txt
           if-no-files-found: error
